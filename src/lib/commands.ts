@@ -1,18 +1,35 @@
+import { Cache } from "@raycast/api";
 import Fuse from "fuse.js";
 import { DATA_URL } from "../config";
 import { ConsoleCommand } from "../types";
 
+const DAY = 24 * 60 * 60 * 1000;
+const cache = new Cache({ namespace: "artisan-data" });
+
+// The files change weekly, so a copy under a day old is fresh enough
+async function fetchDataFile(file: string, failure: string) {
+  const raw = cache.get(file);
+  const cached = raw ? (JSON.parse(raw) as { fetchedAt: number; text: string }) : undefined;
+  if (cached && Date.now() - cached.fetchedAt < DAY) return cached.text;
+  const response = await fetch(`${DATA_URL}/${file}`).catch(() => undefined);
+  if (!response?.ok) {
+    if (cached) return cached.text;
+    throw new Error(response ? `${failure} (${response.status}).` : `${failure}. Check your connection.`);
+  }
+  const text = await response.text();
+  cache.set(file, JSON.stringify({ fetchedAt: Date.now(), text }));
+  return text;
+}
+
 export async function fetchVersions() {
-  const response = await fetch(`${DATA_URL}/index.ts`);
-  if (!response.ok) throw new Error(`Couldn't load the Laravel versions (${response.status}).`);
+  const index = await fetchDataFile("index.ts", "Couldn't load the Laravel versions");
   // The weekly build writes one `"13.x": v13,` line per version, newest first
-  return [...(await response.text()).matchAll(/"(\d+\.x)":/g)].map(([, version]) => version);
+  return [...index.matchAll(/"(\d+\.x)":/g)].map(([, version]) => version);
 }
 
 export async function fetchCommands(version: string) {
-  const response = await fetch(`${DATA_URL}/${version}.json`);
-  if (!response.ok) throw new Error(`Couldn't load the commands for Laravel ${version} (${response.status}).`);
-  const commands = (await response.json()) as ConsoleCommand[];
+  const text = await fetchDataFile(`${version}.json`, `Couldn't load the commands for Laravel ${version}`);
+  const commands = JSON.parse(text) as ConsoleCommand[];
   // Names starting with _ are Artisan's internal commands
   return commands.filter((command) => !command.name.startsWith("_"));
 }
