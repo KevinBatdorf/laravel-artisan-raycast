@@ -15,10 +15,12 @@ export const SummaryView = ({ command }: { command: ConsoleCommand }) => {
           <Action.OpenInBrowser
             title="Continue in Chat"
             icon={Icon.SpeechBubble}
-            url={`raycast://extensions/raycast/raycast-ai/ai-chat?fallbackText=${encodeURIComponent(prompt)}`}
+            url={`${
+              process.env.RAYCAST_SCHEME ?? "raycast"
+            }://extensions/raycast/raycast-ai/ai-chat?fallbackText=${encodeURIComponent(prompt)}`}
           />
           {code?.[1] ? (
-            <Action.CopyToClipboard title="Copy Snippet To Clipboard" content={code[1].replace(/`{3}/g, "")} />
+            <Action.CopyToClipboard title="Copy Snippet to Clipboard" content={code[1].replace(/`{3}/g, "")} />
           ) : null}
         </ActionPanel>
       }
