@@ -15,6 +15,7 @@ export type ConsoleCommand = {
   name: string;
   description: string;
   synopsis: string;
+  aliases: string[];
   arguments: Argument[];
   options: Option[];
 };
