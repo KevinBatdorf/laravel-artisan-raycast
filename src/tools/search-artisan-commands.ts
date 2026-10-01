@@ -1,4 +1,4 @@
-import { fetchCommands, fetchVersions, searchCommands } from "../lib/commands";
+import { argumentDefault, fetchCommands, fetchVersions, searchCommands } from "../lib/commands";
 
 type Input = {
   /**
@@ -35,7 +35,7 @@ export default async function searchArtisanCommandsTool(input: Input) {
         name: argument.name,
         description: argument.description,
         required: argument.required,
-        default: argument.default ?? undefined,
+        default: argumentDefault(argument.default),
       })),
     })),
     warnings: [

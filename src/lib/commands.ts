@@ -34,6 +34,10 @@ export async function fetchCommands(version: string) {
   return commands.filter((command) => !command.name.startsWith("_"));
 }
 
+export function argumentDefault(value: ConsoleCommand["arguments"][number]["default"]) {
+  return [value ?? []].flat().join(", ") || undefined;
+}
+
 // Option and argument text is long, so only a strict match there counts
 export function searchCommands(commands: ConsoleCommand[], term: string) {
   if (!term.trim()) return commands;

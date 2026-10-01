@@ -1,4 +1,5 @@
 import { List } from "@raycast/api";
+import { argumentDefault } from "../lib/commands";
 import { ConsoleCommand } from "../types";
 
 export const DetailsView = ({ command }: { command: ConsoleCommand }) => (
@@ -21,13 +22,14 @@ const buildMarkdown = ({ description, synopsis, options, arguments: args }: Cons
     sections.push(`### Options\n---\n\n${lines.join("")}`);
   }
   if (args?.length) {
-    const lines = args.map(({ name, description, required, default: defaultValue }) =>
-      block([
+    const lines = args.map(({ name, description, required, default: value }) => {
+      const defaultValue = argumentDefault(value);
+      return block([
         `<${name}>`,
         `- ${required ? "required" : "optional"}${defaultValue ? `, default: ${defaultValue}` : ""}`,
         `- ${description}`,
-      ]),
-    );
+      ]);
+    });
     sections.push(`### Arguments\n---\n\n${lines.join("")}`);
   }
   return sections.join("\n\n");
